@@ -1,0 +1,40 @@
+services:
+  db:
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: todo_list
+    volumes:
+      - ./backend/sql:/docker-entrypoint-initdb.d
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      - PMA_ARBITRARY=1
+
+  backend:
+    build:
+      context: ./backend # Path to your backend Dockerfile
+    volumes:
+      - ./backend:/var/www/html
+    ports:
+      - "8080:80" # Expose Apache on port 8080
+    environment:
+      MYSQL_DB_CONNECTION: mysql
+      MYSQL_DB_NAME: todo_list
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend # Path to your frontend Dockerfile
+    ports:
+      - "5173:5173" # Expose React application on port 5173
+    environment:
+      - CHOKIDAR_USEPOLLING=true
